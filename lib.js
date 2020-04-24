@@ -73,7 +73,7 @@ const getAccountBalance = async account => {
 /**
  * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
  * @param {Account} account - Account to get balance for
- * @returns {number} - Total balance of the account
+ * @returns {Array.<Holdings>} - All holdings listed under this Spark user
  */
 const getAccountHoldings = async account => {
   const result = await axios(
