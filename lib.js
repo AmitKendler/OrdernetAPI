@@ -1,9 +1,10 @@
 const axios = require('axios');
-const { path } = require('ramda');
+const { path, map, find, propEq, pipe, pluck, sum } = require('ramda');
 const {
   accountBalancePath,
   parseAccountHoldings,
   parseAccounts,
+  parseAccountHoldingsSummary,
 } = require('./utils');
 
 const config = {
@@ -88,12 +89,77 @@ const getAccountHoldings = async account => {
 };
 
 /**
+ * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
+ * @param {Account} account - Account to get balance for
+ * @returns {Array.<Holdings>} - All holdings listed under this Spark user
+ */
+const getAccountHoldingsSummary = async account => {
+  const result = await axios(
+    `${config.apiUrl}/Account/GetHoldingsSummery?accountKey=${account.key}`,
+    {
+      headers: {
+        authorization: config.authorization,
+      },
+    },
+  );
+  return parseAccountHoldingsSummary(result);
+};
+
+/**
  * Convert account key to account number.
  * @param {string} key - The account key for API usage (`ACC_XXX-YYYYYY`)
  * @returns {string} - The account number
  */
 const accountKeyToNumber = key => {
   return key.split('-')[1];
+};
+
+const findFund = (fundNumber, fundList) =>
+  find(propEq('fundNumber', fundNumber), fundList);
+
+const summarizePercent = pipe(pluck('fundPercent'), sum);
+
+const balancePortoflio = async (
+  account,
+  desiredPortolio = [
+    {
+      fundNumber: 1159169,
+      percent: 40,
+    },
+  ],
+) => {
+  const currentPortfolio = await getAccountHoldings(account);
+  const { totalWorth, cashWorth } = await getAccountHoldingsSummary(account);
+
+  console.log('currentPortfolio', currentPortfolio);
+
+  const sumPercent = summarizePercent(currentPortfolio);
+
+  return map(desiredFund => {
+    const currentFund = findFund(desiredFund.fundNumber, currentPortfolio);
+    if (currentFund) {
+      const desiredPercent = desiredFund.percent;
+
+      const portfolioWorth = totalWorth - cashWorth;
+
+      const percentToBalance =
+        desiredPercent - (currentFund.fundPercent / sumPercent) * 100;
+
+      console.log('currentFund.fundPercent', currentFund.fundPercent);
+      console.log('sumPercent', sumPercent);
+      console.log('desiredPercent', desiredPercent);
+      console.log('portfolioWorth', portfolioWorth);
+      console.log('percentToBalance', percentToBalance);
+      console.log('percentToBalance', percentToBalance);
+
+      return {
+        ...currentFund,
+        amountToBalance: ((percentToBalance / 100) * portfolioWorth).toFixed(2),
+      };
+    }
+
+    return null;
+  }, desiredPortolio);
 };
 
 module.exports = {
@@ -103,4 +169,6 @@ module.exports = {
   getAccountBalance,
   accountKeyToNumber,
   getAccountHoldings,
+  getAccountHoldingsSummary,
+  balancePortoflio,
 };

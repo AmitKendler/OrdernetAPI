@@ -79,13 +79,18 @@ function info(text) {
       number: lib.accountKeyToNumber(k),
     }));
   }
-
-  for (const a of accounts) {
-    info(`Getting balance for account ${a.number} (account key ${a.key})...`);
-    const balance = await lib.getAccountBalance(a);
-    console.log(a.number, balance);
-    const holdings = await lib.getAccountHoldings(a);
-    console.log(holdings);
+  try {
+    await Promise.all(
+      accounts.map(async a => {
+        console.log(
+          `Getting balance for account ${a.number} (account key ${a.key})...`,
+        );
+        const balance = await lib.balancePortoflio(a);
+        console.log(a.number, balance);
+      }),
+    );
+  } catch (e) {
+    console.error(e);
   }
 
   process.exit(0);

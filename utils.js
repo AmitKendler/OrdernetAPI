@@ -24,6 +24,9 @@ const rawHoldingFundAmmountPath = 'bd';
 const rawHoldingFundAvgWorthPath = 'be';
 const rawHoldingFundPercentagePath = 'bk';
 
+const rawHoldingCurrentTotal = 'b';
+const rawHoldingCurrentCash = 'g';
+
 const renameProp = curry((oldName, newName, obj) =>
   dissoc(oldName, assoc(newName, obj[oldName], obj)),
 );
@@ -61,9 +64,17 @@ const parseAccounts = pipe(
   })),
 );
 
+const parseAccountHoldingsSummary = pipe(
+  path(responsePath),
+  pick([rawHoldingCurrentTotal, rawHoldingCurrentCash]),
+  renameProp(rawHoldingCurrentTotal, 'totalWorth'),
+  renameProp(rawHoldingCurrentCash, 'cashWorth'),
+);
+
 module.exports = {
   accountBalancePath,
   parseAccountHoldings,
   responsePath,
   parseAccounts,
+  parseAccountHoldingsSummary,
 };
