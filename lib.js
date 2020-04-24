@@ -1,4 +1,10 @@
-const axios = require("axios");
+const axios = require('axios');
+const { path } = require('ramda');
+const {
+  accountBalancePath,
+  parseAccountHoldings,
+  parseAccounts,
+} = require('./utils');
 
 const config = {
   apiUrl: null,
@@ -12,7 +18,7 @@ const config = {
  * @param {string} broker - Used to get the API URL like this: `https://spark${broker}.ordernet.co.il/api`. E.g. `nesua`, `meitav`, `psagot`
  * @returns {Void}
  */
-async function authenticate(username, password, broker) {
+const authenticate = async (username, password, broker) => {
   config.apiUrl = `https://spark${broker}.ordernet.co.il/api`;
 
   const authRes = await axios.post(`${config.apiUrl}/Auth/Authenticate`, {
@@ -21,7 +27,7 @@ async function authenticate(username, password, broker) {
   });
 
   config.authorization = `Bearer ${authRes.data.l}`;
-}
+};
 
 /**
  * @typedef {Object} Account
@@ -34,48 +40,61 @@ async function authenticate(username, password, broker) {
  * Get all the accounts listed under this Spark user. Uses `/api/DataProvider/GetStaticData`.
  * @returns {Array.<Account>} - All accounts listed under this Spark user
  */
-async function getAccounts() {
-  const getStaticDataRes = await axios.get(
+const getAccounts = async () => {
+  const result = await axios.get(
     `${config.apiUrl}/DataProvider/GetStaticData`,
     {
       headers: {
         authorization: config.authorization,
       },
-    }
+    },
   );
 
-  const accounts = getStaticDataRes.data
-    .filter((x) => x.b == "ACC")[0]
-    .a.map((x) => ({ key: x._k, number: x.a.b, name: x.a.e }));
-
-  return accounts;
-}
+  return parseAccounts(result);
+};
 
 /**
  * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
  * @param {Account} account - Account to get balance for
  * @returns {number} - Total balance of the account
  */
-async function getAccountBalance(account) {
+const getAccountBalance = async account => {
   const result = await axios(
     `${config.apiUrl}/Account/GetAccountSecurities?accountKey=${account.key}`,
     {
       headers: {
         authorization: config.authorization,
       },
-    }
+    },
   );
-  return result.data.a.o;
-}
+  return path(accountBalancePath, result);
+};
+
+/**
+ * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
+ * @param {Account} account - Account to get balance for
+ * @returns {number} - Total balance of the account
+ */
+const getAccountHoldings = async account => {
+  const result = await axios(
+    `${config.apiUrl}/Account/GetHoldings?accountKey=${account.key}`,
+    {
+      headers: {
+        authorization: config.authorization,
+      },
+    },
+  );
+  return parseAccountHoldings(result);
+};
 
 /**
  * Convert account key to account number.
  * @param {string} key - The account key for API usage (`ACC_XXX-YYYYYY`)
  * @returns {string} - The account number
  */
-function accountKeyToNumber(key) {
-  return key.split("-")[1];
-}
+const accountKeyToNumber = key => {
+  return key.split('-')[1];
+};
 
 module.exports = {
   config,
@@ -83,4 +102,5 @@ module.exports = {
   getAccounts,
   getAccountBalance,
   accountKeyToNumber,
+  getAccountHoldings,
 };
