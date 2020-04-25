@@ -39,6 +39,31 @@ const authenticate = async (username, password, broker) => {
  */
 
 /**
+ * @typedef {Object} HoldingSummary
+ * @property {number} totalWorth - the account balance (total worth of all holdings including cash)
+ * @property {number} cashWorth - The cash worth of the holdings
+ */
+
+/**
+ * @typedef {Object} Holding
+ * @property {number} fundNumber - The fund number
+ * @property {string} fundName - The name of the fund
+ * @property {number} fundAmount - The amount of the specified fund
+ * @property {number} fundWorth - the cash worth of the specified fund
+ * @property {number} fundPercent - The percent of the specifie fund within all of the account's fund
+ */
+
+/**
+ * @typedef {Object} HoldingWithBalance
+ * @property {number} fundNumber - The fund number
+ * @property {string} fundName - The name of the fund
+ * @property {number} fundAmount - The amount of the specified fund
+ * @property {number} fundWorth - the cash worth of the specified fund
+ * @property {number} fundPercent - The percent of the specifie fund within all of the account's fund
+ * @property {number} amountToBalance - the ammount of cash needed to add / subtract from the fund in order to balance the portfolio
+ */
+
+/**
  * Get all the accounts listed under this Spark user. Uses `/api/DataProvider/GetStaticData`.
  * @returns {Array.<Account>} - All accounts listed under this Spark user
  */
@@ -73,9 +98,9 @@ const getAccountBalance = async account => {
 };
 
 /**
- * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
+ * Gets the account's holding list. Uses `/api/Account/GetHoldings`.
  * @param {Account} account - Account to get balance for
- * @returns {Array.<Holdings>} - All holdings listed under this Spark user
+ * @returns {Array.<Holding>} - All holdings listed under this Spark user
  */
 const getAccountHoldings = async account => {
   const result = await axios(
@@ -90,9 +115,9 @@ const getAccountHoldings = async account => {
 };
 
 /**
- * Get total balance of an account. Uses `/api/Account/GetAccountSecurities`.
+ * Gets the account's holding summary. Uses `/api/Account/GetHoldingsSummery`.
  * @param {Account} account - Account to get balance for
- * @returns {Array.<Holdings>} - All holdings listed under this Spark user
+ * @returns {HoldingSummary} - the worth of the accounts cash and total holdings
  */
 const getAccountHoldingsSummary = async account => {
   const result = await axios(
@@ -115,6 +140,15 @@ const accountKeyToNumber = key => {
   return key.split('-')[1];
 };
 
+/**
+ * Calculates the ammount of cash to add to each holding in order to balance your
+ * portoflio with a desired balanced portfolio.
+ * @param {Account} account - Account to balance the porfolio
+ * @param {Array.<DesiredHolding>} desiredPortolio - list with the desired percent of each fund/holding
+ * @param {boolean} useCashInAccount - flag indicating the function "use" the cash in the account for the balanced portfolio
+ * @param {number} additionToPortfolio - addition of cash to the balanced portfolio (defaults to 0)
+ * @returns {Array.<HoldingWithBalance>} - The list of the holdings with the needed ammount of cash in order to balance the portfolio
+ */
 const balancePortoflio = async (
   account,
   desiredPortolio,

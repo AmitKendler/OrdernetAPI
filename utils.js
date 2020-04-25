@@ -23,7 +23,7 @@ const rawAccountNumberPath = ['a', 'b'];
 
 const rawHoldingFundNumberPath = 'c';
 const rawHoldingFundNamePath = 'j';
-const rawHoldingFundAmmountPath = 'bd';
+const rawHoldingfundAmountPath = 'bd';
 const rawHoldingFundAvgWorthPath = 'be';
 const rawHoldingFundPercentagePath = 'bk';
 
@@ -40,7 +40,7 @@ const parseAccountHoldings = pipe(
     pick([
       rawHoldingFundNumberPath,
       rawHoldingFundNamePath,
-      rawHoldingFundAmmountPath,
+      rawHoldingfundAmountPath,
       rawHoldingFundAvgWorthPath,
       rawHoldingFundPercentagePath,
     ]),
@@ -49,7 +49,7 @@ const parseAccountHoldings = pipe(
     pipe(
       renameProp(rawHoldingFundNumberPath, 'fundNumber'),
       renameProp(rawHoldingFundNamePath, 'fundName'),
-      renameProp(rawHoldingFundAmmountPath, 'fundAmmount'),
+      renameProp(rawHoldingfundAmountPath, 'fundAmount'),
       renameProp(rawHoldingFundAvgWorthPath, 'fundWorth'),
       renameProp(rawHoldingFundPercentagePath, 'fundPercent'),
     ),
