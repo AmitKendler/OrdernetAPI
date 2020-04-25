@@ -124,15 +124,32 @@ const balancePortoflio = async (
   desiredPortolio = [
     {
       fundNumber: 1159169,
+      percent: 10,
+    },
+    {
+      fundNumber: 1159250,
       percent: 40,
+    },
+    {
+      fundNumber: 5122510,
+      percent: 10,
+    },
+    {
+      fundNumber: 5122940,
+      percent: 10,
+    },
+    {
+      fundNumber: 5124573,
+      percent: 25,
+    },
+    {
+      fundNumber: 5127766,
+      percent: 5,
     },
   ],
 ) => {
   const currentPortfolio = await getAccountHoldings(account);
   const { totalWorth, cashWorth } = await getAccountHoldingsSummary(account);
-
-  console.log('currentPortfolio', currentPortfolio);
-
   const sumPercent = summarizePercent(currentPortfolio);
 
   return map(desiredFund => {
