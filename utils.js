@@ -8,6 +8,9 @@ const {
   map,
   filter,
   propEq,
+  pluck,
+  sum,
+  find,
 } = require('ramda');
 
 const responsePath = ['data'];
@@ -71,10 +74,17 @@ const parseAccountHoldingsSummary = pipe(
   renameProp(rawHoldingCurrentCash, 'cashWorth'),
 );
 
+const findFund = (fundNumber, fundList) =>
+  find(propEq('fundNumber', fundNumber), fundList);
+
+const summarizePercent = pipe(pluck('fundPercent'), sum);
+
 module.exports = {
   accountBalancePath,
   parseAccountHoldings,
   responsePath,
   parseAccounts,
   parseAccountHoldingsSummary,
+  findFund,
+  summarizePercent,
 };

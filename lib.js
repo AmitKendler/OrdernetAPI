@@ -1,10 +1,11 @@
 const axios = require('axios');
-const { path, map, find, propEq, pipe, pluck, sum } = require('ramda');
+const { path, map } = require('ramda');
 const {
   accountBalancePath,
   parseAccountHoldings,
   parseAccounts,
   parseAccountHoldingsSummary,
+  findFund,
 } = require('./utils');
 
 const config = {
@@ -114,60 +115,26 @@ const accountKeyToNumber = key => {
   return key.split('-')[1];
 };
 
-const findFund = (fundNumber, fundList) =>
-  find(propEq('fundNumber', fundNumber), fundList);
-
-const summarizePercent = pipe(pluck('fundPercent'), sum);
-
 const balancePortoflio = async (
   account,
-  desiredPortolio = [
-    {
-      fundNumber: 1159169,
-      percent: 10,
-    },
-    {
-      fundNumber: 1159250,
-      percent: 40,
-    },
-    {
-      fundNumber: 5122510,
-      percent: 10,
-    },
-    {
-      fundNumber: 5122940,
-      percent: 10,
-    },
-    {
-      fundNumber: 5124573,
-      percent: 25,
-    },
-    {
-      fundNumber: 5127766,
-      percent: 5,
-    },
-  ],
+  desiredPortolio,
+  useCashInAccount = false,
+  additionToPortfolio = 0,
 ) => {
   const currentPortfolio = await getAccountHoldings(account);
   const { totalWorth, cashWorth } = await getAccountHoldingsSummary(account);
-  const sumPercent = summarizePercent(currentPortfolio);
 
   return map(desiredFund => {
     const currentFund = findFund(desiredFund.fundNumber, currentPortfolio);
     if (currentFund) {
       const desiredPercent = desiredFund.percent;
 
-      const portfolioWorth = totalWorth - cashWorth;
+      const portfolioWorth = useCashInAccount
+        ? totalWorth + additionToPortfolio
+        : totalWorth + additionToPortfolio - cashWorth;
 
       const percentToBalance =
-        desiredPercent - (currentFund.fundPercent / sumPercent) * 100;
-
-      console.log('currentFund.fundPercent', currentFund.fundPercent);
-      console.log('sumPercent', sumPercent);
-      console.log('desiredPercent', desiredPercent);
-      console.log('portfolioWorth', portfolioWorth);
-      console.log('percentToBalance', percentToBalance);
-      console.log('percentToBalance', percentToBalance);
+        desiredPercent - (currentFund.fundWorth / portfolioWorth) * 100;
 
       return {
         ...currentFund,

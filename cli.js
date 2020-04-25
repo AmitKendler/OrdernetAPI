@@ -85,7 +85,36 @@ function info(text) {
         console.log(
           `Getting balance for account ${a.number} (account key ${a.key})...`,
         );
-        const balance = await lib.balancePortoflio(a);
+        const balance = await lib.balancePortoflio(
+          a,
+          [
+            {
+              fundNumber: 1159169,
+              percent: 10,
+            },
+            {
+              fundNumber: 1159250,
+              percent: 40,
+            },
+            {
+              fundNumber: 5122510,
+              percent: 10,
+            },
+            {
+              fundNumber: 5122940,
+              percent: 10,
+            },
+            {
+              fundNumber: 5124573,
+              percent: 25,
+            },
+            {
+              fundNumber: 5127766,
+              percent: 5,
+            },
+          ],
+          true,
+        );
         console.log(a.number, balance);
       }),
     );
